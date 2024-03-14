@@ -22,6 +22,7 @@ volatile bool move = false;
 volatile int pstage = 0;
 volatile int time;
 volatile int d_count = 0;
+bool calibrated = false;
 
 void setup() {
   Serial.begin(9600);
@@ -42,16 +43,23 @@ void setup() {
   pinMode(11, OUTPUT);
   pinMode(12, OUTPUT);
   pinMode(13, OUTPUT);
+
+  pinMode(38, INPUT);
+  attatchInterrupt(digitalPintToInterrupt(38), calibrate);
+
   forward();
   Timer1.initialize(2000);
   Timer1.attachInterrupt(signal);
+  coast();
  
   qtr.setTypeRC();
-  qtr.setSensorPins((const uint8_t[]){24, 25, 26, 27, 28, 29, 30, 31},8);
+  qtr.setSensorPins((const uint8_t[]){30, 28, 26, 24, 31, 29, 27, 25}, 8);
+  // qtr.setSensorPins((const uint8_t[]){24, 25, 26, 27, 28, 29, 30, 31}, 8);
+
 
   Serial.println("ready for b");
-  delay(5000);
-  bool f1 = false;
+  // delay(5000);
+  // bool f1 = false;
   // while(!f1){
   //   if(Serial.available()){
   //     f1 = true;
@@ -79,48 +87,75 @@ long senstime = 0;
 const int middle = 4500;
 int direction = 0;
 int directionInt = 0;
-int lastmeas = 0;
+long lastmeas = 0;
+int directions[] = {0, 0, 0, 0, 0};
+int directionsi = 0;
 void loop() {
+  if (!calibrated) return;
+  
   if(millis() - lastmeas > 50) {
     lastmeas = millis();
     pos = qtr.readLineBlack(readl);
 
-    for (int i=0; i<8; i++){
-      // Serial.print(readl[i]);
-      // Serial.print(" ");
-    }
-    Serial.println(" ");
-    for(int loopl=0; loopl<8; loopl++){
-      
-      if(readl[loopl] >= 500){
-        digitalWrite(loopl+44,LOW);
-      }
-      else{
-        digitalWrite(loopl+44,HIGH);
-      }
-    }
+    // for (int i=0; i<8; i++){
+    //   Serial.print(readl[i]);
+    //   Serial.print(" ");
+    // }
 
     // proportional
     direction = pos - middle;
-    // Serial.println(direction);
+    Serial.println(direction);
 
-    if(direction > 1500) {
-      speed(3);
-      Serial.println("left");
+    // Integral
+    directionsi = (directionsi + 1) % 5;
+    directions[directionsi] = direction;
+    int sum = 0;
+    for (int i = 0; i<5; i++){
+      sum += directions[i];
+    }
+    // Serial.println(sum);
+
+    
+    if(direction > 2500) {
+      speed(6);
+      Serial.println("rot_left");
       pivotLeft();
-    } else if (direction < -1500) {
-      speed(3);
-      Serial.println("right");
-      pivotRight();
-    } else {
+    } else if (direction > 1000)  {
       speed(8);
+      Serial.println("turn left");
+      turnLeft();
+    } else if (direction < -2500) {
+      speed(6);
+      Serial.println("rot_right");
+      pivotRight();
+    } else if (direction < -1000) {
+      speed(8);
+      Serial.println("turn right");
+      turnRight();
+    } else {
+      speed(10);
       Serial.println("straight");
       forward();
     }
-
-    // Integral
-    directionInt += direction;
   }
+}
+
+void calibrate() {
+    for (int i = 0; i < 250; i++) {
+      qtr.calibrate();
+      delay(20);
+    }
+
+    qtr.readCalibrated(readl);
+    for (int i=0; i<8; i++){
+      Serial.print(readl[i]);
+      Serial.print(" ");
+    }
+    Serial.println(" ");
+
+    Serial.println("ready for read");
+  }
+  calibrated = true;
 }
 
 void forward() {
