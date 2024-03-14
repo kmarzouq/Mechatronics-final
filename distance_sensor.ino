@@ -1,43 +1,41 @@
 void distance_setup() {
-    pinMode(A3, INPUT);
+  pinMode(A3, INPUT);
 }
 
 
-bool measure = true;
 
 float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
 float avg_slope = -12.857;
 
-int count = 0;
+int countd = 0;
 float total = 0;
-float distances[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+float distances[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int di = 0;
+const int SAMPLES = 10;
 
 void measure_distance() {
   float distance;
-  if (count == 9) {
-    float analog = total/10.0;
-    // Serial.println(analog);
-    total = analogRead(A3);
-    count = 1;
+  distances[di] = analogRead(A3);
+  float sum = 0;
+  for (int i = 0; i < SAMPLES; i++)
+    sum += distances[i];
 
-    int i = 0;
-    while(analog <= points[i] && i <= 8) i++;
+  int avg = sum/SAMPLES;
+  di = (di + 1) % SAMPLES;
+  
+  int i = 0;
+  while(avg <= points[i] && i <= 8) i++;
 
-    float slope;
-    if (i <= 0) {
-      distance = 5 - (points[0] - analog) / avg_slope;
-    } else {
-      if (i >= 8)
-        slope = avg_slope;
-      else
-        slope = (points[i] - points[i-1])/5;
-
-      distance = analog - points[i-1]) / slope + i*5;
-    }
-    Serial.println(distance);
+  float slope;
+  if (i <= 0) {
+    distance = 5 - (points[0] - avg) / avg_slope;
   } else {
-    count++;
-    total += analogRead(A3);
+    if (i >= 8)
+      slope = avg_slope;
+    else
+      slope = (points[i] - points[i-1])/5;
+
+    distance = (avg - points[i-1]) / slope + i*5;
+    Serial.println(distance);
   }
 }

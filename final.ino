@@ -54,13 +54,13 @@ void setup() {
   qtr.setTypeRC();
   qtr.setSensorPins((const uint8_t[]){30, 28, 26, 24, 31, 29, 27, 25}, 8);
 
-  delay(1000);
-  Serial.println("calibrating");
+  // delay(1000);
+  // Serial.println("calibrating");
 
-  for (int i = 0; i < 250; i++) {
-    qtr.calibrate();
-    delay(20);
-  }
+  // for (int i = 0; i < 250; i++) {
+  //   qtr.calibrate();
+  //   delay(20);
+  // }
 
   qtr.readCalibrated(readl);
   Serial.println(" ");
@@ -77,8 +77,11 @@ long lastmeas = 0;
 int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
 void loop() {
-  if(millis() - lastmeas > 50) {
-    lastmeas = millis();
+  measure_distance();
+  delay(100);
+  
+  if(millis() - lastmeas < 50) {
+    // lastmeas = millis();
     pos = qtr.readLineBlack(readl);
 
     // for (int i=0; i<8; i++){
