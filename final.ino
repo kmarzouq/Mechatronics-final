@@ -44,41 +44,28 @@ void setup() {
   pinMode(12, OUTPUT);
   pinMode(13, OUTPUT);
 
-  //pinMode(38, INPUT);
-  //attachInterrupt(digitalPinToInterrupt(38), calibrate, CHANGE);
-  brake();
-  // forward();
+  coast();
   Timer1.initialize(2000);
   Timer1.attachInterrupt(signal);
 
- 
+  servo_setup();
+  distance_setup();
+
   qtr.setTypeRC();
   qtr.setSensorPins((const uint8_t[]){30, 28, 26, 24, 31, 29, 27, 25}, 8);
-  // qtr.setSensorPins((const uint8_t[]){24, 25, 26, 27, 28, 29, 30, 31}, 8);
 
+  delay(1000);
+  Serial.println("calibrating");
 
-  Serial.println("ready for b");
-  // delay(5000);
-  bool f1 = false;
-  while(!f1){
-    if(true){
-      f1 = true;
-    for (int i = 0; i < 250; i++) {
+  for (int i = 0; i < 250; i++) {
     qtr.calibrate();
     delay(20);
   }
 
   qtr.readCalibrated(readl);
-
   Serial.println(" ");
 
   Serial.println("ready for read");
-  calibrated = true;
-      while(false) {}
-      Serial.println("calibrating");
-    }
-  }
-  
 }
 
 int pos;
@@ -90,7 +77,6 @@ long lastmeas = 0;
 int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
 void loop() {
-  
   if(millis() - lastmeas > 50) {
     lastmeas = millis();
     pos = qtr.readLineBlack(readl);
@@ -150,8 +136,6 @@ void forward() {
  in2B = false;
  set_pins();
 }
-
-
 void reverse(){
  enA = true;
  in1 = false;
@@ -163,7 +147,6 @@ void reverse(){
  set_pins();
 }
 
-
 void brake(){
  enA = true;
  in1 = false;
@@ -174,8 +157,6 @@ void brake(){
  in2B = false;
  set_pins();
 }
-
-
 void coast(){
  enA = false;
  in1 = false;
@@ -186,7 +167,6 @@ void coast(){
  in2B = false;
  set_pins();
 }
-
 
 void turnLeft() {
  enA = false;
@@ -204,6 +184,7 @@ void turnRight() {
  enB = false;
  set_pins();
 }
+
 void pivotLeft() {
  enA = true;
  in1 = false;
