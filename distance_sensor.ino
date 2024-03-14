@@ -13,6 +13,7 @@ float distances[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int di = 0;
 const int SAMPLES = 10;
 
+// todo: points were innacurate in maker lab, account for lighting conditions?
 void measure_distance() {
   float distance;
   distances[di] = analogRead(A3);
@@ -24,18 +25,19 @@ void measure_distance() {
   di = (di + 1) % SAMPLES;
   
   int i = 0;
+  // Serial.print(avg);
+  // Serial.print(" ");
   while(avg <= points[i] && i <= 8) i++;
 
   float slope;
-  if (i <= 0) {
+  if (i <= 0)
     distance = 5 - (points[0] - avg) / avg_slope;
-  } else {
-    if (i >= 8)
-      slope = avg_slope;
-    else
-      slope = (points[i] - points[i-1])/5;
-
+  else if(i >= 8)
+    distance = 40 + (avg - points[7]) / avg_slope;
+  else {
+    slope = (points[i] - points[i-1])/5;
     distance = (avg - points[i-1]) / slope + i*5;
-    Serial.println(distance);
   }
+
+  // Serial.println(distance);
 }
