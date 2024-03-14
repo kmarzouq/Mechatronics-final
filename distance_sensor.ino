@@ -38,6 +38,6 @@ void measure_distance() {
     slope = (points[i] - points[i-1])/5;
     distance = (avg - points[i-1]) / slope + i*5;
   }
-
+  return distance;
   // Serial.println(distance);
 }

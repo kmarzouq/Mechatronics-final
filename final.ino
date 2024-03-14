@@ -77,11 +77,12 @@ long lastmeas = 0;
 int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
 void loop() {
-  measure_distance();
-  delay(100);
   
   if(millis() - lastmeas < 50) {
-    // lastmeas = millis();
+    measure_distance();
+
+
+    lastmeas = millis();
     pos = qtr.readLineBlack(readl);
 
     // for (int i=0; i<8; i++){
