@@ -22,7 +22,7 @@ volatile bool move = false;
 volatile int pstage = 0;
 volatile int time;
 volatile int d_count = 0;
-bool calibrated = false;
+volatile bool calibrated = false;
 
 void setup() {
   Serial.begin(9600);
@@ -45,8 +45,8 @@ void setup() {
   pinMode(13, OUTPUT);
 
   pinMode(38, INPUT);
-  attatchInterrupt(digitalPintToInterrupt(38), calibrate);
-
+  attachInterrupt(digitalPinToInterrupt(38), calibrate, CHANGE);
+  
   forward();
   Timer1.initialize(2000);
   Timer1.attachInterrupt(signal);
@@ -57,8 +57,8 @@ void setup() {
   // qtr.setSensorPins((const uint8_t[]){24, 25, 26, 27, 28, 29, 30, 31}, 8);
 
 
-  Serial.println("ready for b");
-  // delay(5000);
+  // Serial.println("ready for b");
+  // // delay(5000);
   // bool f1 = false;
   // while(!f1){
   //   if(Serial.available()){
@@ -67,19 +67,7 @@ void setup() {
   //     Serial.println("calibrating");
   //   }
   // }
-  for (int i = 0; i < 250; i++) {
-    qtr.calibrate();
-    delay(20);
-  }
-
-  qtr.readCalibrated(readl);
-  for (int i=0; i<8; i++){
-    Serial.print(readl[i]);
-    Serial.print(" ");
-  }
-  Serial.println(" ");
-
-  Serial.println("ready for read");
+  
 }
 
 int pos;
@@ -92,7 +80,6 @@ int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
 void loop() {
   if (!calibrated) return;
-  
   if(millis() - lastmeas > 50) {
     lastmeas = millis();
     pos = qtr.readLineBlack(readl);
@@ -141,20 +128,19 @@ void loop() {
 }
 
 void calibrate() {
-    for (int i = 0; i < 250; i++) {
-      qtr.calibrate();
-      delay(20);
-    }
-
-    qtr.readCalibrated(readl);
-    for (int i=0; i<8; i++){
-      Serial.print(readl[i]);
-      Serial.print(" ");
-    }
-    Serial.println(" ");
-
-    Serial.println("ready for read");
+  for (int i = 0; i < 250; i++) {
+    qtr.calibrate();
+    delay(20);
   }
+
+  qtr.readCalibrated(readl);
+  for (int i=0; i<8; i++){
+    Serial.print(readl[i]);
+    Serial.print(" ");
+  }
+  Serial.println(" ");
+
+  Serial.println("ready for read");
   calibrated = true;
 }
 
