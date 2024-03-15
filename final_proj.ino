@@ -44,6 +44,10 @@ void setup() {
   pinMode(12, OUTPUT);
   pinMode(13, OUTPUT);
 
+  pinMode(2, INPUT);
+  attachInterrupt(digitalPinToInterrupt(2), measure, CHANGE);
+
+
   coast();
   Timer1.initialize(2000);
   Timer1.attachInterrupt(signal);
@@ -54,13 +58,13 @@ void setup() {
   qtr.setTypeRC();
   qtr.setSensorPins((const uint8_t[]){30, 28, 26, 24, 31, 29, 27, 25}, 8);
 
-  // delay(1000);
-  // Serial.println("calibrating");
+  delay(1000);
+  Serial.println("calibrating");
 
-  // for (int i = 0; i < 250; i++) {
-  //   qtr.calibrate();
-  //   delay(20);
-  // }
+  for (int i = 0; i < 250; i++) {
+    qtr.calibrate();
+    delay(20);
+  }
 
   qtr.readCalibrated(readl);
   Serial.println(" ");
@@ -223,14 +227,14 @@ void measure() {
 
 void cmForward(float x){
   count = 0;
-  target = x*90 - 100; // -100 for braking time
+  target = x*7.5 - 4; // -4 for braking time
   move = true;
   forward();
 }
 
 void cmReverse(float x) {
  count = 0;
- target = x*90 - 100; // -100 for braking time
+ target = x*7.5 - 4; // -4 for braking time
  move = true;
  reverse();
 }
