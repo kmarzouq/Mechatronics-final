@@ -1,13 +1,20 @@
-  #include <Servo.h>
-  Servo myservo;  // create servo object to control a servo
-  int val = 0;
+#include <Servo.h>
+Servo myservo;  // create servo object to control a servo
+int val = 0;
 
-  int potpin = A0;  // analog pin used to connect the potentiometer
+int potpin = A0;  // analog pin used to connect the potentiometer
 
-  void servo_setup() {
-    myservo.attach(9);  // attaches the servo on pin 9 to the servo object
-    myservo.write(val);                  // sets the servo position according to the scaled value
-  }
+void servo_setup() {
+  myservo.attach(6);  // attaches the servo on pin 9 to the servo object
+  // myservo.write(0);                  // sets the servo position according to the scaled value
+  // delay(1000);
+  // myservo.write(82);
+}
+void hit() {
+  myservo.write(0);
+  delay(1000); //todo should probably be non-blocking
+  myservo.write(80);
+}
 
 
   // void loop() {
