@@ -1,10 +1,6 @@
-// #include <Wire.h>
-// #include "Adafruit_TCS34725.h"
-// #include <stdbool.h>
-// #include <stdlib.h>
-
-// /* Example code for the Adafruit TCS34725 breakout library */
-
+#include <Wire.h>
+#include "Adafruit_TCS34725.h"
+#include <stdlib.h>
 
 // /* Connect SCL    to analog 5
 //   Connect SDA    to analog 4
@@ -13,30 +9,21 @@
 
 
 // /* Initialise with default values (int time = 2.4ms, gain = 1x) */
-// // Adafruit_TCS34725 tcs = Adafruit_TCS34725();
 
-// float vals[] = {0.51, 0.33, 0.16,     0.05, 0.24, 0.71,     0.69, 0.16, 0.15,     0.18, 0.21, 0.62 ,     0.14, 0.64, 0.22,     0.22, 0.35, 0.43};
-// float vals1[] = {'y','b','r','p','g','w'};
-// char whac1[] = {'n','y','b','r','p','g','w'};
+float vals[] = {0.51, 0.33, 0.16,     0.05, 0.24, 0.71,     0.82, 0.08, 0.10,     0.18, 0.21, 0.62 ,     0.14, 0.64, 0.22,     0.22, 0.35, 0.43};
+float vals1[] = {'y','b','r','p','g','w'};
+char whac1[] = {'n','y','b','r','p','g','w'};
 
 // /* Initialise with specific int time and gain values */
-// Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_16X);
-// void setup(void) {
-//  Serial.begin(9600);
-
-
-
-
-//  if (tcs.begin()) {
-//    Serial.println("Found sensor");
-//  } else {
-//    Serial.println("No TCS34725 found ... check your connections");
-//    while (1);
-//  }
-
-
-//  // Now we're ready to get readings!
-// }
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_16X);
+void color_setup() {
+  if (tcs.begin()) {
+    Serial.println("Found sensor");
+  } else {
+    Serial.println("No TCS34725 found ... check your connections");
+    while(true);
+  }
+}
 // int sv;
 // int cnt=0;
 // uint16_t f;
