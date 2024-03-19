@@ -41,7 +41,7 @@ volatile int time;
 volatile int d_count = 0;
 volatile bool calibrated = false;
 void distance_setup() {
-  pinMode(A3, INPUT);
+  pinMode(A0, INPUT);
 }
 
 void hit(){
@@ -54,8 +54,10 @@ void hit(){
 }
 
 int anim[] = {32,33,34,35,36,37,38,39};
-float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
-float avg_slope = -12.857;
+//float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
+//float avg_slope = -12.857;
+float points[] = {3.12, 2.15, 1.61, 1.3, 1.05, 0.88, 0.77, 0.67};
+float avg_slope = -0.0597;
 
 int countd = 0;
 float total = 0;
@@ -65,31 +67,52 @@ const int SAMPLES = 10;
 const byte pinLED = A0;
 // todo: points were innacurate in maker lab, account for lighting conditions?
 int measure_distance() {
-  float distance;
-  distances[di] = analogRead(A3);
-  float sum = 0;
-  for (int i = 0; i < SAMPLES; i++)
-    sum += distances[i];
+  float volts = analogRead(A0)/1024.0 * 5;
+   //Serial.println(volts);
+   int i = 0;
+   while(volts <= points[i] && i <=8 ) i++;
+   //Serial.println(i);
 
-  int avg = sum/SAMPLES;
-  di = (di + 1) % SAMPLES;
+
+   float slope;
+   if (i<=0){
+    //Serial.println(5 - (points[0]- volts)/ avg_slope);
+    return (5 - (points[0]- volts)/ avg_slope);
+   } else{
+   if (i >= 8 )
+     slope = avg_slope;
+   else
+     slope = (points[i] - points[i-1])/5;
+
+
+   //Serial.println((volts - points[i-1])/ slope + i*5);
+   return (volts - points[i-1])/ slope + i*5 ;
+   }
+  // float distance;
+  // distances[di] = analogRead(A3);
+  // float sum = 0;
+  // for (int i = 0; i < SAMPLES; i++)
+  //   sum += distances[i];
+
+  // int avg = sum/SAMPLES;
+  // di = (di + 1) % SAMPLES;
   
-  int i = 0;
-  // Serial.print(avg);
-  // Serial.print(" ");
-  while(avg <= points[i] && i <= 8) i++;
+  // int i = 0;
+  // // Serial.print(avg);
+  // // Serial.print(" ");
+  // while(avg <= points[i] && i <= 8) i++;
 
-  float slope;
-  if (i <= 0)
-    distance = 5 - (points[0] - avg) / avg_slope;
-  else if(i >= 8)
-    distance = 40 + (avg - points[7]) / avg_slope;
-  else {
-    slope = (points[i] - points[i-1])/5;
-    distance = (avg - points[i-1]) / slope + i*5;
-  }
-  //Serial.println(distance);
-  return distance;
+  // float slope;
+  // if (i <= 0)
+  //   distance = 5 - (points[0] - avg) / avg_slope;
+  // else if(i >= 8)
+  //   distance = 40 + (avg - points[7]) / avg_slope;
+  // else {
+  //   slope = (points[i] - points[i-1])/5;
+  //   distance = (avg - points[i-1]) / slope + i*5;
+  // }
+  // //Serial.println(distance);
+  // return distance;
   
 }
 volatile long int stsw;
@@ -177,7 +200,7 @@ void setup() {
     
   Serial.println("calibrate 1");
   stsw = millis();
-  for (int i = 0; i < 250; i++) {
+  for (int i = 0; i < 100; i++) {
     qtr.calibrate();
     delay(20);
     if(millis()-stsw > 200){
@@ -216,7 +239,7 @@ void setup() {
   
   Serial.println("calibrate 2");
   stsw = millis();
-  for (int i = 0; i < 250; i++) {
+  for (int i = 0; i < 100; i++) {
     qtr.calibrate();
     delay(20);
     if(millis()-stsw > 200){
@@ -382,6 +405,18 @@ void followR(){
 }
 int state=0;
 
+void coin(int last_mov){
+  cmPR(15+last_mov);
+      delay(1000);
+      cmReverse(12);
+      delay(1000);
+      brake();
+      delay(500);
+      cmForward(12);
+      delay(1000);
+      cmPL(15);
+      delay(1000);
+}
 
 void loop() {
   digitalWrite(pinLED,LOW);
@@ -401,34 +436,61 @@ void loop() {
 
   if(state == 0){// get to coins
   follow();
+  Serial.println(d_count);
   digitalWrite(anim[0], HIGH);
-    if((measure_distance()<15) && (turn > 90)){
+    if(d_count>26000 && (measure_distance()<25) /*&& (turn > 90)*/){
       state=1;
-      //brake();
+      brake();
       digitalWrite(anim[1], HIGH);
       //Serial.println(turn);
+      delay(1000);
       stsw=millis();
+      coin(last_mov);
+      cmForward(13);
+      delay(2000);
+      coin(0);
+      cmForward(8);
+      delay(2000);
+      coin(0);
+      //cmForward(10);
+      delay(2000);
+      cmPR(30);
+      delay(2000);
+      forward();
+      // delay(1000);
+      // cmReverse(9);
+      // delay(1000);
+      // brake();
+      // delay(500);
+      // cmForward(9);
+      // delay(1000);
+      // cmPL(15);
+      // delay(1000);
+
       //hit();
 
     }
   
   }
   else if(state == 1){
-    //follow();
-    // if(millis()-stsw > 700){
-    //   state=2;
-    //   digitalWrite(anim[2], HIGH);
-    //   brake();
-    //   delay(1000);
-    //   //cmForward(5);
-    // }
-    reverse();
-    speed(1);
-    if ((measure_distance()>20)){
-      brake();
+    follow();
+    if(millis()-stsw > 1000){
       state=2;
       digitalWrite(anim[2], HIGH);
+      brake();
+      delay(1000);
+      //cmForward(5);
     }
+    //reverse();
+    
+    
+    //speed(4);
+    // state=2;
+    // delay(1000);
+    // brake();
+    // delay(500);
+    // cmReverse(5);
+    
     
   }
   // else if(state==2){
@@ -552,17 +614,37 @@ void measure() {
 
 void cmForward(float x){
   count = 0;
-  target = x*7.5 - 4 ; // -100 for braking time
+  target = x*90 - 100 ; // -100 for braking time
   move = true;
   forward();
 }
 
 void cmReverse(float x) {
  count = 0;
- target = x*7.5 - 4 ; // -100 for braking time
+ target = x*90 - 100 ; // -100 for braking time
  move = true;
  reverse();
 }
+
+void cmPR(float x) {
+ count = 0;
+ target = x*90 - 100 ; // -100 for braking time
+ move = true;
+ pivotRight();
+}
+void cmPL(float x) {
+ count = 0;
+ target = x*90 - 100 ; // -100 for braking time
+ move = true;
+ pivotLeft();
+}
+void cmTR(float x) {
+ count = 0;
+ target = x*90 - 100 ; // -100 for braking time
+ move = true;
+ turnRight();
+}
+
 
 void speed(int s) {
   signal_length = s*2;
