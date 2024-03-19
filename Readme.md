@@ -6,10 +6,10 @@ For Mechatronics Final Project
 - [x] Main wheels
 - [x] Third Wheel
 - [x] Top Part
-- [ ] Batteries
+- [x] Batteries
 - [ ] distance sensor (need to account for light changes)
-- [ ] color sensor
-- [ ] Hall effect sensor
+- [x] color sensor
+- [x] Hall effect sensor
 - [ ] Coins
 - [ ] Mole whacker
 - [ ] Organize code into stages
