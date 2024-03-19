@@ -1,11 +1,14 @@
 void distance_setup() {
   pinMode(A3, INPUT);
+  Serial.begin(9600);
 }
 
 
 
-float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
-float avg_slope = -12.857;
+// float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
+float points[] = {639, 440, 330, 266, 215, 180, 158, 137};
+float avg_slope = -14.343;
+// float avg_slope = -12.857;
 
 int countd = 0;
 float total = 0;
@@ -14,7 +17,7 @@ int di = 0;
 const int SAMPLES = 10;
 
 // todo: points were innacurate in maker lab, account for lighting conditions?
-void measure_distance() {
+float measure_distance() {
   float distance;
   distances[di] = analogRead(A3);
   float sum = 0;
@@ -23,7 +26,7 @@ void measure_distance() {
 
   int avg = sum/SAMPLES;
   di = (di + 1) % SAMPLES;
-  
+
   int i = 0;
   // Serial.print(avg);
   // Serial.print(" ");
