@@ -1,12 +1,12 @@
 void distance_setup() {
   pinMode(A3, INPUT);
-  Serial.begin(9600);
+  // Serial.begin(9600);
 }
 
 
 
 // float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
-float points[] = {639, 440, 330, 266, 215, 180, 158, 137};
+float points[] = {660, 519, 340, 290, 240, 210, 195, 175};
 float avg_slope = -14.343;
 // float avg_slope = -12.857;
 
@@ -25,6 +25,7 @@ float measure_distance() {
     sum += distances[i];
 
   int avg = sum/SAMPLES;
+  // Serial.println(avg);
   di = (di + 1) % SAMPLES;
 
   int i = 0;
