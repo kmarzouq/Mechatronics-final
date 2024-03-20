@@ -29,6 +29,7 @@ int state = 0;
 volatile int d_count = 0;
 volatile bool calibrated = false;
 int anim[] = {32,33,34,35,36,37,38,39};
+const int tpc = 86; // ticks/cm for wheels
 
 
 void setup() {
@@ -106,7 +107,7 @@ void loop() {
     follow();
     Serial.println(d_count);
     digitalWrite(anim[0], HIGH);
-    if(d_count > 2600 && dist < 25) /*&& (turn > 90)*/{
+    if(d_count > 297 * tpc && dist < 28) /*&& (turn > 90)*/{
       brake();
       speed(5);
       digitalWrite(anim[1], HIGH);
@@ -120,11 +121,13 @@ void loop() {
       cmForward(9);
       delay(1000);
       coin(0);
-      //cmForward(10);
+      cmReverse(13);
       delay(1000);
-      cmPR(30);
+      cmPR(33);
       delay(1000);
       forward();
+      digitalWrite(anim[2], HIGH);
+      digitalWrite(anim[3], HIGH); 
       // delay(1000);
       // cmReverse(9);
       // delay(1000);
@@ -138,7 +141,7 @@ void loop() {
       //hit();
       state = 1;
     }
-  } else if(state == 1){
+  } else if (state == 1){
     follow();
     if(millis()-stsw > 1000){
       state=2;
@@ -332,33 +335,33 @@ void measure() {
 
 void cmForward(float x){
   count = 0;
-  target = x*7.5 - 4; // -4 for braking time
+  target = x*tpc - tpc/1.5; // -4 for braking time
   move = true;
   forward();
 }
 
 void cmReverse(float x) {
  count = 0;
- target = x*7.5 - 4;
+ target = x*tpc - tpc/1.5;
  move = true;
  reverse();
 }
 
 void cmPR(float x) {
  count = 0;
- target = x*7.5 - 4 ;
+ target = x*tpc - tpc/1.5;
  move = true;
  pivotRight();
 }
 void cmPL(float x) {
  count = 0;
- target = x*7.5 - 4 ;
+ target = x*tpc - tpc/1.5;
  move = true;
  pivotLeft();
 }
 void cmTR(float x) {
  count = 0;
- target = x*7.5 - 4 ;
+ target = x*tpc - tpc/1.5;
  move = true;
  turnRight();
 }
