@@ -56,7 +56,7 @@ void hit(){
 int anim[] = {32,33,34,35,36,37,38,39};
 //float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
 //float avg_slope = -12.857;
-float points[] = {3.12, 2.15, 1.61, 1.3, 1.05, 0.88, 0.77, 0.67};
+float points[] = {3.16, 2.51, 1.73, 1.3, 1.05, 0.83, 0.6, 0.41};
 float avg_slope = -0.0597;
 
 int countd = 0;
@@ -446,35 +446,42 @@ void loop() {
       delay(1000);
       stsw=millis();
       coin(last_mov);
-      cmForward(13);
-      delay(2000);
+      follow();
+      delay(100);
+      follow();
+      delay(50);
+      follow();
+      delay(50);
+      follow();
+      delay(50);
+      brake();
+      delay(200);
+      cmForward(5);
+      delay(1000);
+      
+      while(measure_distance()>10){
+        follow();
+        delay(100);
+      }
+      brake();
       coin(0);
-      cmForward(8);
-      delay(2000);
-      coin(0);
+      // cmForward(5);
+      // delay(1000);
+      // coin(0);
       //cmForward(10);
-      delay(2000);
-      cmPR(30);
-      delay(2000);
-      forward();
-      // delay(1000);
-      // cmReverse(9);
-      // delay(1000);
-      // brake();
-      // delay(500);
-      // cmForward(9);
-      // delay(1000);
-      // cmPL(15);
-      // delay(1000);
-
-      //hit();
-
+      delay(1000);
+      cmReverse(5);
+      delay(1000);
+      cmPL(15);
+      delay(1000);
+      cmForward(30);
+      stsw=millis();
     }
   
   }
   else if(state == 1){
     follow();
-    if(millis()-stsw > 1000){
+    if(millis()-stsw > 3000){
       state=2;
       digitalWrite(anim[2], HIGH);
       brake();
