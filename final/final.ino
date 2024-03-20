@@ -44,20 +44,17 @@ void distance_setup() {
   pinMode(A0, INPUT);
 }
 
-void hit(){
-  int val;
-  val = map(700, 0, 1023, 0, 120);     // scale it for use with the servo (value between 0 and 180)
- myservo.write(val);                  // sets the servo position according to the scaled value
- delay(500);                           // waits for the servo to get there
-  val = map(200, 0, 1023, 0, 120);     // scale it for use with the servo (value between 0 and 180)
- myservo.write(val);                  // sets the servo position according to the scaled value
+void hit() {
+  myservo.write(0);
+  delay(1000); //todo should probably be non-blocking
+  myservo.write(80);
 }
 
 int anim[] = {32,33,34,35,36,37,38,39};
-//float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
-//float avg_slope = -12.857;
-float points[] = {3.16, 2.51, 1.73, 1.3, 1.05, 0.83, 0.6, 0.41};
-float avg_slope = -0.0597;
+
+// float points[] = {3.16, 2.51, 1.73, 1.3, 1.05, 0.83, 0.6, 0.41};
+float points[] = {660, 519, 340, 290, 240, 210, 195, 175};
+float avg_slope = -14.343;
 
 int countd = 0;
 float total = 0;
@@ -65,56 +62,33 @@ float distances[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int di = 0;
 const int SAMPLES = 10;
 const byte pinLED = A0;
-// todo: points were innacurate in maker lab, account for lighting conditions?
-int measure_distance() {
-  float volts = analogRead(A0)/1024.0 * 5;
-   //Serial.println(volts);
-   int i = 0;
-   while(volts <= points[i] && i <=8 ) i++;
-   //Serial.println(i);
+float measure_distance() {
+  float distance;
+  distances[di] = analogRead(A3);
+  float sum = 0;
+  for (int i = 0; i < SAMPLES; i++)
+    sum += distances[i];
 
+  int avg = sum/SAMPLES;
+  // Serial.println(avg);
+  di = (di + 1) % SAMPLES;
 
-   float slope;
-   if (i<=0){
-    //Serial.println(5 - (points[0]- volts)/ avg_slope);
-    return (5 - (points[0]- volts)/ avg_slope);
-   } else{
-   if (i >= 8 )
-     slope = avg_slope;
-   else
-     slope = (points[i] - points[i-1])/5;
+  int i = 0;
+  while(avg <= points[i] && i <= 8) i++;
 
-
-   //Serial.println((volts - points[i-1])/ slope + i*5);
-   return (volts - points[i-1])/ slope + i*5 ;
-   }
-  // float distance;
-  // distances[di] = analogRead(A3);
-  // float sum = 0;
-  // for (int i = 0; i < SAMPLES; i++)
-  //   sum += distances[i];
-
-  // int avg = sum/SAMPLES;
-  // di = (di + 1) % SAMPLES;
-  
-  // int i = 0;
-  // // Serial.print(avg);
-  // // Serial.print(" ");
-  // while(avg <= points[i] && i <= 8) i++;
-
-  // float slope;
-  // if (i <= 0)
-  //   distance = 5 - (points[0] - avg) / avg_slope;
-  // else if(i >= 8)
-  //   distance = 40 + (avg - points[7]) / avg_slope;
-  // else {
-  //   slope = (points[i] - points[i-1])/5;
-  //   distance = (avg - points[i-1]) / slope + i*5;
-  // }
-  // //Serial.println(distance);
-  // return distance;
-  
+  float slope;
+  if (i <= 0)
+    distance = 5 - (points[0] - avg) / avg_slope;
+  else if(i >= 8)
+    distance = 40 + (avg - points[7]) / avg_slope;
+  else {
+    slope = (points[i] - points[i-1])/5;
+    distance = (avg - points[i-1]) / slope + i*5;
+  }
+  return distance;
+  // Serial.println(distance);
 }
+
 volatile long int stsw;
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_16X);
 void setup() {
@@ -168,11 +142,8 @@ void setup() {
  
   qtr.setTypeRC();
   qtr.setSensorPins((const uint8_t[]){30, 28, 26, 24, 31, 29, 27, 25}, 8);
-  // qtr.setSensorPins((const uint8_t[]){24, 25, 26, 27, 28, 29, 30, 31}, 8);
-
 
   Serial.println("waiting to calibrate");
-  // delay(5000);
   bool f1 = false;
   volatile int wait;
   stsw=millis();
@@ -305,9 +276,9 @@ int directionInt = 0;
 long lastmeas = 0;
 int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
-void follow(){
-  
-  if(millis() - lastmeas > 50) {
+
+void follow() {
+if(millis() - lastmeas > 30) {
     lastmeas = millis();
     pos = qtr.readLineBlack(readl);
 
@@ -318,7 +289,7 @@ void follow(){
 
     // proportional
     direction = pos - middle;
-    //Serial.println(direction);
+    // Serial.println(direction);
 
     // Integral
     directionsi = (directionsi + 1) % 5;
@@ -329,37 +300,29 @@ void follow(){
     }
     // Serial.println(sum);
 
-    
-    if(direction > 2500) {
+
+    if(direction > 2700) {
       speed(6);
-      //Serial.println("rot_left");
+      Serial.println("rot_left");
       pivotLeft();
-      last_mov=-2;
-      turn=turn+2;
-    } else if (direction > 1000)  {
+    } else if (direction > 800)  {
       speed(8);
-     // Serial.println("turn left");
+      Serial.println("turn left");
       turnLeft();
-      turn=turn+1;
-    } else if (direction < -2500) {
+    } else if (direction < -2700) {
       speed(6);
-     // Serial.println("rot_right");
+      Serial.println("rot_right");
       pivotRight();
-      last_mov=2;
-      turn=turn+2;
-    } else if (direction < -1000) {
+    } else if (direction < -800) {
       speed(8);
-      turn=turn+1;
-     // Serial.println("turn right");
+      Serial.println("turn right");
       turnRight();
     } else {
       speed(10);
-      //Serial.println("straight");
+      Serial.println("straight");
       forward();
-      last_mov=0;
     }
   }
-
 }
 void followR(){
   

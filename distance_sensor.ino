@@ -5,7 +5,6 @@ void distance_setup() {
 
 
 
-// float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
 float points[] = {660, 519, 340, 290, 240, 210, 195, 175};
 float avg_slope = -14.343;
 // float avg_slope = -12.857;
