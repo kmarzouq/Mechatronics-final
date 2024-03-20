@@ -107,7 +107,7 @@ void loop() {
     follow();
     Serial.println(d_count);
     digitalWrite(anim[0], HIGH);
-    if(d_count > 297 * tpc && dist < 28) /*&& (turn > 90)*/{
+    if(d_count > 317 * tpc && dist < 28) /*&& (turn > 90)*/{
       brake();
       speed(5);
       digitalWrite(anim[1], HIGH);
@@ -227,7 +227,8 @@ void buttonpress() {
   button += 1;
 }
 
-void coin(int last_mov){
+void coin(int last_mov) {
+  speed(6);
   cmPR(16+last_mov);
   delay(1000);
   cmReverse(13);
@@ -238,6 +239,7 @@ void coin(int last_mov){
   delay(1000);
   cmPL(16);
   delay(1000);
+  speed(8);
 }
 
 void forward() {
