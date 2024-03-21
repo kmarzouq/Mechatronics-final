@@ -15,7 +15,7 @@ int button=0;
 int buttonp=0;
 void buttonpress(){
  //add counter that increments +1
- button=button+1;
+ button += 1;
 }
 
 
@@ -45,17 +45,18 @@ void distance_setup() {
 
 void hit() {
   myservo.write(0);
-  delay(1000);
-  myservo.write(80);
+  delay(800);
+  myservo.write(100);
   delay(500);
   myservo.write(0);
 }
 
 int anim[] = {32,33,34,35,36,37,38,39};
-//float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
-//float avg_slope = -12.857;
 float points[] = {3.16, 2.51, 1.73, 1.3, 1.05, 0.83, 0.6, 0.41};
 float avg_slope = -0.0597;
+// float points[] = {660, 519, 340, 290, 240, 210, 195, 175};
+
+// float avg_slope = -14.343;
 
 int countd = 0;
 float total = 0;
@@ -65,24 +66,26 @@ const int SAMPLES = 10;
 const byte pinLED = A0;
 // todo: points were innacurate in maker lab, account for lighting conditions?
 int measure_distance() {
-  float volts = analogRead(A0)/1024.0 * 5;
+ float volts = analogRead(A0)/1024.0 * 5;
    //Serial.println(volts);
    int i = 0;
    while(volts <= points[i] && i <=8 ) i++;
    //Serial.println(i);
 
 
-  float slope;
-  if (i <= 0)
-    distance = 5 - (points[0] - avg) / avg_slope;
-  else if(i >= 8)
-    distance = 40 + (avg - points[7]) / avg_slope;
-  else {
-    slope = (points[i] - points[i-1])/5;
-    distance = (avg - points[i-1]) / slope + i*5;
-  }
-  return distance;
-  // Serial.println(distance);
+   float slope;
+   if (i<=0){
+    //Serial.println(5 - (points[0]- volts)/ avg_slope);
+    return (5 - (points[0]- volts)/ avg_slope);
+   } else {
+   if (i >= 8 )
+     slope = avg_slope;
+   else
+     slope = (points[i] - points[i-1])/5;
+   }
+
+   //Serial.println((volts - points[i-1])/ slope + i*5);
+   return (volts - points[i-1])/ slope + i*5 ;
 }
 
 volatile long int stsw;
@@ -270,6 +273,7 @@ int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
 int w_count = 0;
 int col_loc[] = {0, 6, 1, 4, 5, 0, 2};
+int etime = 0;
 
 
 void follow() {
@@ -380,21 +384,8 @@ void coin(int last_mov){
 
 void loop() {
   digitalWrite(pinLED,LOW);
-  //digitalWrite(anim[0], state);
-  // if (millis()-stsw>5000){
-  //   state = ~state;
-  //   Serial.println(stsw);
-  //   stsw=millis();
-  // }
 
-  // if (button!=buttonp){
-  //   Serial.println("press");
-  //   state = ~state;
-  //   buttonp=button;
-  // }
-
-
-  if(state == 0){// get to coins
+  if(state == 0) {// get to coins
   follow();
   Serial.println(d_count);
   digitalWrite(anim[0], HIGH);
@@ -408,10 +399,16 @@ void loop() {
       coin(last_mov);
       follow();
       delay(100);
-      follow();
-      delay(50);
-      follow();
-      delay(50);
+        follow();
+        delay(50);
+        follow();
+        delay(50);
+        follow();
+        delay(50);
+        follow();
+        delay(50);
+        
+      coin(0);
       follow();
       delay(50);
       brake();
@@ -419,7 +416,7 @@ void loop() {
       cmForward(5);
       delay(1000);
       speed(3);
-      while(measure_distance()>10){
+      while(measure_distance() > 10){
         follow();
         delay(100);
       }
@@ -433,47 +430,46 @@ void loop() {
       cmReverse(10);
       delay(1000);
       cmPR(15);
-      delay(3000);
-      cmForward(60);
-      delay(2000);
-      stsw=millis();
+      delay(1000);
+      cmForward(20);
+      delay(700);
+      stsw = millis();
     }
 
-  }
-  else if(state == 1){
+  } else if(state == 1){
     follow();
-    if(millis()-stsw > 2500){
-      state=2;
+    
+    if(millis()-stsw > 3300){
+      state = 2;
       digitalWrite(anim[2], HIGH);
       brake();
-      delay(1000);
-      //cmForward(5);
+      cmPR(0.4);
+      delay(700);
+      etime = millis();
+      
+      d_count=0;
+      while(d_count < 4200) {
+        reverse();
+        delay(100);
+      }
+      brake();
     }
-    //reverse();
-
-
-    //speed(4);
-    // state=2;
-    // delay(1000);
-    // brake();
-    // delay(500);
-    // cmReverse(5);
-
-
-  }
-  else if (state == 2) {
+  } 
+  
+  else if (state == 2) { // initial color check
     speed(6);
     cmPR(15.5);
     delay(600);
-    cmForward(8);
+    cmForward(13);
     delay(500);
     w_count = d_count;
     stsw = millis();
-    while(d_count - w_count < 50*tpc && millis() - stsw < 1900) {
+    while(d_count - w_count < 43*tpc && millis() - stsw < 2000) {
       follow();
     };
     coast();
-    delay(200);
+    delay(500);
+    brake();
     state = 3;
     // Serial.println("ready for color");
   } else if (state == 3) {
@@ -481,18 +477,22 @@ void loop() {
     cmReverse(51);
     delay(1800);
     to_color(color);
-    cmForward(8);
+    cmForward(9);
     delay(550);
     w_count = d_count;
     stsw = millis();
-    while(d_count - w_count < 50*tpc && millis() - stsw < 1900) {
+    while(d_count - w_count < 50*tpc && millis() - stsw < 2000) {
       follow();
     }
     coast();
     cmReverse(1.5);
+    delay(400);
+    cmPR(1.5);
     delay(500);
     hit();
     delay(1000);
+    if (etime - millis() > 2000)
+      state = 4;
   }
 }
 
@@ -503,13 +503,17 @@ void to_color(int color) {
   digitalWrite(anim[color], HIGH);
   //while(buttonp == button) {}; // wait for press
   //buttonp = button;
-  int diff = prev_loc - color;
-  if(diff < 0)
-    cmPL(4.9*abs(diff));
-  else
-    cmPR(4.9*abs(diff));
+  float diff = prev_loc - color;
+  // if (abs(diff) > 2) diff *= 1.16;
+  // diff *= 1 + diff / 30;
+  if(diff < 0) {
+    cmPL(5.0*abs(diff));
+  } else {
+    diff *= 1.1;
+    cmPR(5.0*abs(diff));
+  }
 
-  delay(1600);
+  delay(300*abs(diff));
   prev_loc = color;
 }
 
