@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include "Adafruit_TCS34725.h"
+#include <stdbool.h>
 #include <stdlib.h>
 
 int color_millis = 0;
@@ -10,13 +11,14 @@ int color_millis = 0;
 //   Connect GROUND to common ground */
 
 
-// /* Initialise with default values (int time = 2.4ms, gain = 1x) */
+/* Initialise with default values (int time = 2.4ms, gain = 1x) */
+// Adafruit_TCS34725 tcs = Adafruit_TCS34725();
 
 float vals[] = {0.51, 0.33, 0.16,     0.05, 0.24, 0.71,     0.82, 0.08, 0.10,     0.18, 0.21, 0.62 ,     0.14, 0.64, 0.22,     0.22, 0.35, 0.43};
 float vals1[] = {'y','b','r','p','g','w'};
 char whac1[] = {'n','y','b','r','p','g','w'};
 
-// /* Initialise with specific int time and gain values */
+/* Initialise with specific int time and gain values */
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_16X);
 void color_setup() {
   if (tcs.begin()) {
@@ -59,6 +61,10 @@ int color_loop() {
  colorTemp = tcs.calculateColorTemperature(r, g, b);
  colorTemp = tcs.calculateColorTemperature_dn40(r, g, b, c);
  lux = tcs.calculateLux(r, g, b);
+ tcs.getRawData(&r, &g, &b, &c);
+ colorTemp = tcs.calculateColorTemperature(r, g, b);
+ colorTemp = tcs.calculateColorTemperature_dn40(r, g, b, c);
+ lux = tcs.calculateLux(r, g, b);
 
 
 //  Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial.print(" K - ");
@@ -68,8 +74,18 @@ int color_loop() {
 //  Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
 //  Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
 //  Serial.println(" ");
+//  Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial.print(" K - ");
+//  Serial.print("Lux: "); Serial.print(lux, DEC); Serial.print(" - ");
+//  Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
+//  Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
+//  Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
+//  Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
+//  Serial.println(" ");
 
 
+//  int y = millis();
+//   float time = y-x;
+//  Serial.print("The amount of time it takes the loop to run is: "); Serial.println(time);
 //  int y = millis();
 //   float time = y-x;
 //  Serial.print("The amount of time it takes the loop to run is: "); Serial.println(time);
@@ -88,7 +104,7 @@ k[2] = bc/cc;
 //Serial.println(" ");
 cnt=0;
 for(f=0;f<18;f++){
-  
+
   if(f%3==0){
 
     Serial.print(" | ");Serial.print(f/3);Serial.print(" | ");
@@ -107,7 +123,7 @@ for(f=0;f<18;f++){
     cnt=cnt+1;
     //Serial.print(cnt);
     //Serial.print(" ");
-    
+
   }
   //Serial.print(" {");Serial.print(f);Serial.print(" } ");
 // Serial.println("here");
@@ -121,9 +137,10 @@ for(f=0;f<18;f++){
   else if((f+1)%3==0){
     cnt=0;
   //  Serial.print(" | ");Serial.print(f/3);Serial.print(" | ");
-  
+
   }
 
+}
 }
 
 // Serial.println(k[0]);

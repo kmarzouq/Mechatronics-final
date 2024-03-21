@@ -6,11 +6,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-Servo myservo;  
+Servo myservo;
 QTRSensors qtr;
 
 int thresh;
-int readl[8]; 
+int readl[8];
 int button=0;
 int buttonp=0;
 void buttonpress(){
@@ -45,17 +45,17 @@ void distance_setup() {
 
 void hit() {
   myservo.write(0);
-  delay(1000); 
+  delay(1000);
   myservo.write(80);
   delay(500);
   myservo.write(0);
 }
 
 int anim[] = {32,33,34,35,36,37,38,39};
-
-// float points[] = {3.16, 2.51, 1.73, 1.3, 1.05, 0.83, 0.6, 0.41};
-float points[] = {660, 519, 340, 290, 240, 210, 195, 175};
-float avg_slope = -14.343;
+//float points[] = {580, 412, 305, 241, 201, 171, 144, 130};
+//float avg_slope = -12.857;
+float points[] = {3.16, 2.51, 1.73, 1.3, 1.05, 0.83, 0.6, 0.41};
+float avg_slope = -0.0597;
 
 int countd = 0;
 float total = 0;
@@ -63,19 +63,14 @@ float distances[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int di = 0;
 const int SAMPLES = 10;
 const byte pinLED = A0;
-float measure_distance() {
-  float distance;
-  distances[di] = analogRead(A3);
-  float sum = 0;
-  for (int i = 0; i < SAMPLES; i++)
-    sum += distances[i];
+// todo: points were innacurate in maker lab, account for lighting conditions?
+int measure_distance() {
+  float volts = analogRead(A0)/1024.0 * 5;
+   //Serial.println(volts);
+   int i = 0;
+   while(volts <= points[i] && i <=8 ) i++;
+   //Serial.println(i);
 
-  int avg = sum/SAMPLES;
-  // Serial.println(avg);
-  di = (di + 1) % SAMPLES;
-
-  int i = 0;
-  while(avg <= points[i] && i <= 8) i++;
 
   float slope;
   if (i <= 0)
@@ -92,13 +87,13 @@ float measure_distance() {
 
 volatile long int stsw;
 void setup() {
-  
+
   Serial.begin(9600);
   pinMode(pinLED, OUTPUT);
-  
+
   distance_setup();
   Serial.println(measure_distance());
-  
+
   attachInterrupt(digitalPinToInterrupt(2), measure, CHANGE);
   pinMode(3, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(3),buttonpress, FALLING);
@@ -134,11 +129,14 @@ void setup() {
   Timer1.initialize(2000);
   Timer1.attachInterrupt(signal);
 
- 
+
   qtr.setTypeRC();
   qtr.setSensorPins((const uint8_t[]){30, 28, 26, 24, 31, 29, 27, 25}, 8);
+  // qtr.setSensorPins((const uint8_t[]){24, 25, 26, 27, 28, 29, 30, 31}, 8);
+
 
   Serial.println("waiting to calibrate");
+  // delay(5000);
   bool f1 = false;
   volatile int wait;
   stsw=millis();
@@ -155,7 +153,7 @@ void setup() {
         }
         else{
           digitalWrite(anim[lp12],LOW);
-        
+
         }
       }
     }
@@ -163,7 +161,7 @@ void setup() {
   //while(button){
     // if(true){
     //   f1 = true;
-    
+
   Serial.println("calibrate 1");
   stsw = millis();
   for (int i = 0; i < 100; i++) {
@@ -178,7 +176,7 @@ void setup() {
         }
         else{
           digitalWrite(anim[lp12],LOW);
-        
+
         }
       }
     }
@@ -197,12 +195,12 @@ void setup() {
         }
         else{
           digitalWrite(anim[lp12],LOW);
-        
+
         }
       }
     }
   }
-  
+
   Serial.println("calibrate 2");
   stsw = millis();
   for (int i = 0; i < 100; i++) {
@@ -217,7 +215,7 @@ void setup() {
         }
         else{
           digitalWrite(anim[lp12],LOW);
-        
+
         }
       }
     }
@@ -229,7 +227,7 @@ void setup() {
 
   Serial.println("ready");
 
-    
+
   myservo.attach(6);
   hit();
   stsw=millis();
@@ -246,7 +244,7 @@ void setup() {
         }
         else{
           digitalWrite(anim[lp12],LOW);
-        
+
         }
 
       }
@@ -286,7 +284,7 @@ void follow() {
 
     // proportional
     direction = pos - middle;
-    // Serial.println(direction);
+    //Serial.println(direction);
 
     // Integral
     directionsi = (directionsi + 1) % 5;
@@ -318,11 +316,13 @@ void follow() {
       speed(8);
       // Serial.println("straight");
       forward();
+      last_mov=0;
     }
   }
+
 }
 void followR(){
-  
+
   if(millis() - lastmeas > 50) {
     lastmeas = millis();
     pos = qtr.readLineBlack(readl);
@@ -345,7 +345,7 @@ void followR(){
     }
     // Serial.println(sum);
 
-    
+
     if(direction > 2500) {
       speed(2);
       //Serial.println("rot_left");
@@ -418,7 +418,7 @@ void loop() {
       delay(200);
       cmForward(5);
       delay(1000);
-      
+      speed(3);
       while(measure_distance()>10){
         follow();
         delay(100);
@@ -430,18 +430,19 @@ void loop() {
       // coin(0);
       //cmForward(10);
       delay(1000);
-      cmReverse(5);
+      cmReverse(10);
       delay(1000);
-      cmPL(15);
-      delay(1000);
-      cmForward(30);
+      cmPR(15);
+      delay(3000);
+      cmForward(60);
+      delay(2000);
       stsw=millis();
     }
-  
+
   }
   else if(state == 1){
     follow();
-    if(millis()-stsw > 3000){
+    if(millis()-stsw > 2500){
       state=2;
       digitalWrite(anim[2], HIGH);
       brake();
@@ -449,16 +450,16 @@ void loop() {
       //cmForward(5);
     }
     //reverse();
-    
-    
+
+
     //speed(4);
     // state=2;
     // delay(1000);
     // brake();
     // delay(500);
     // cmReverse(5);
-    
-    
+
+
   }
   else if (state == 2) {
     speed(6);
@@ -507,7 +508,7 @@ void to_color(int color) {
     cmPL(4.9*abs(diff));
   else
     cmPR(4.9*abs(diff));
-  
+
   delay(1600);
   prev_loc = color;
 }
