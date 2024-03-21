@@ -25,7 +25,7 @@ volatile bool in2B = false;
 
 volatile bool move = false;
 volatile long stsw;
-int state = 0;
+int state = 2;
 volatile int d_count = 0;
 volatile bool calibrated = false;
 int anim[] = {32,33,34,35,36,37,38,39};
@@ -100,6 +100,10 @@ int direction = 0;
 long lastmeas = 0;
 int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
+int w_count = 0;
+int col_loc[] = {0, 6, 1, 4, 5, 0, 2};
+
+
 
 void loop() {
   float dist = measure_distance();
@@ -107,38 +111,29 @@ void loop() {
     follow();
     Serial.println(d_count);
     digitalWrite(anim[0], HIGH);
-    if(d_count > 317 * tpc && dist < 28) /*&& (turn > 90)*/{
+    if(d_count > 317 * tpc && dist < 30){
       brake();
       speed(5);
       digitalWrite(anim[1], HIGH);
-      //Serial.println(turn);
       delay(1000);
       stsw = millis();
       coin(last_mov);
       cmForward(13);
       delay(1000);
+
       coin(0);
       cmForward(9);
       delay(1000);
+
       coin(0);
       cmReverse(13);
       delay(1000);
+      
       cmPR(33);
       delay(1000);
       forward();
       digitalWrite(anim[2], HIGH);
       digitalWrite(anim[3], HIGH); 
-      // delay(1000);
-      // cmReverse(9);
-      // delay(1000);
-      // brake();
-      // delay(500);
-      // cmForward(9);
-      // delay(1000);
-      // cmPL(15);
-      // delay(1000);
-
-      //hit();
       state = 1;
     }
   } else if (state == 1){
@@ -150,33 +145,67 @@ void loop() {
       delay(1000);
       //cmForward(5);
     }
-    //reverse();
-    //speed(4);
-    // state=2;
-    // delay(1000);
-    // brake();
-    // delay(500);
-    // cmReverse(5);
-  } // else if(state == 2){
-  //   // if(millis()-stsw > 1000){
-      //   digitalWrite(anim[3], HIGH);
-      //   speed(2);
-      //   count = 0;
-      //   target = 100 ; // -100 for braking time
-      //   move = true;
-      //   //pivotRight();
-        
-      //   // delay(700);
-      //   // brake();
-      //   // delay(500);
-  //   // }
-  //   state=3;
-    
+  // } else if (state == 2) {
+  //   int color = color_loop();
+  //   color = col_loc[color];
+  //   for(int i = 0; i<8; i++){ digitalWrite(anim[i], LOW); }
+  //   digitalWrite(anim[color], HIGH);
   // }
+  } else if (state == 2) {
+    speed(6);
+    cmPR(15.5);
+    delay(600);
+    cmForward(8);
+    delay(500);
+    w_count = d_count;
+    stsw = millis();
+    while(d_count - w_count < 50*tpc && millis() - stsw < 1900) {
+      follow();
+    };
+    coast();
+    delay(200);
+    state = 3;
+    // Serial.println("ready for color");
+  } else if (state == 3) {
+    int color = color_loop();
+    cmReverse(51);
+    delay(1800);
+    to_color(color);
+    cmForward(8);
+    delay(550);
+    w_count = d_count;
+    stsw = millis();
+    while(d_count - w_count < 50*tpc && millis() - stsw < 1900) {
+      follow();
+    }
+    coast();
+    cmReverse(1.5);
+    delay(500);
+    hit();
+    delay(1000);
+  }
+}
+
+// char whac1[] = {'n','y','b','r','p','g','w'};
+int prev_loc = 0;
+void to_color(int color) {
+  color = col_loc[color];
+  for(int i = 0; i<8; i++){ digitalWrite(anim[i], LOW); }
+  digitalWrite(anim[color], HIGH);
+  //while(buttonp == button) {}; // wait for press
+  //buttonp = button;
+  int diff = prev_loc - color;
+  if(diff < 0)
+    cmPL(4.9*abs(diff));
+  else
+    cmPR(4.9*abs(diff));
+  
+  delay(1600);
+  prev_loc = color;
 }
 
 void follow() {
-if(millis() - lastmeas > 30) {
+  if(millis() - lastmeas > 20) {
     lastmeas = millis();
     pos = qtr.readLineBlack(readl);
 
@@ -200,24 +229,24 @@ if(millis() - lastmeas > 30) {
 
 
     if(direction > 2700) {
-      speed(6);
-      Serial.println("rot_left");
+      speed(4);
+      // Serial.println("rot_left");
       pivotLeft();
     } else if (direction > 800)  {
-      speed(8);
-      Serial.println("turn left");
+      speed(6);
+      // Serial.println("turn left");
       turnLeft();
     } else if (direction < -2700) {
-      speed(6);
-      Serial.println("rot_right");
+      speed(4);
+      // Serial.println("rot_right");
       pivotRight();
     } else if (direction < -800) {
-      speed(8);
-      Serial.println("turn right");
+      speed(6);
+      // Serial.println("turn right");
       turnRight();
     } else {
-      speed(10);
-      Serial.println("straight");
+      speed(8);
+      // Serial.println("straight");
       forward();
     }
   }
@@ -229,15 +258,15 @@ void buttonpress() {
 
 void coin(int last_mov) {
   speed(6);
-  cmPR(16+last_mov);
+  cmPR(12+last_mov);
   delay(1000);
-  cmReverse(13);
+  cmReverse(12);
   delay(1000);
   brake();
   delay(1000);
-  cmForward(13);
+  cmForward(12);
   delay(1000);
-  cmPL(16);
+  cmPL(56);
   delay(1000);
   speed(8);
 }

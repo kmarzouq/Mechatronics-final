@@ -18,9 +18,7 @@ void buttonpress(){
  button=button+1;
 }
 
-float vals[] = {0.51, 0.33, 0.16,     0.05, 0.24, 0.71,     0.82, 0.08, 0.10,     0.18, 0.21, 0.62 ,     0.14, 0.64, 0.22,     0.22, 0.35, 0.43};
-float vals1[] = {'y','b','r','p','g','w'};
-char whac1[] = {'n','y','b','r','p','g','w'};
+
 volatile int turn=0;
 volatile int target = 0;
 volatile int count = 0;
@@ -39,6 +37,7 @@ volatile bool move = false;
 volatile int pstage = 0;
 volatile int time;
 volatile int d_count = 0;
+const int tpc = 86; // ticks/cm for wheels
 volatile bool calibrated = false;
 void distance_setup() {
   pinMode(A0, INPUT);
@@ -46,8 +45,10 @@ void distance_setup() {
 
 void hit() {
   myservo.write(0);
-  delay(1000); //todo should probably be non-blocking
+  delay(1000); 
   myservo.write(80);
+  delay(500);
+  myservo.write(0);
 }
 
 int anim[] = {32,33,34,35,36,37,38,39};
@@ -90,7 +91,6 @@ float measure_distance() {
 }
 
 volatile long int stsw;
-Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_24MS, TCS34725_GAIN_16X);
 void setup() {
   
   Serial.begin(9600);
@@ -98,12 +98,7 @@ void setup() {
   
   distance_setup();
   Serial.println(measure_distance());
-   if (tcs.begin()) {
-   Serial.println("Found sensor");
- } else {
-   Serial.println("No TCS34725 found ... check your connections");
-   while (1);
- }
+  
   attachInterrupt(digitalPinToInterrupt(2), measure, CHANGE);
   pinMode(3, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(3),buttonpress, FALLING);
@@ -235,7 +230,6 @@ void setup() {
   Serial.println("ready");
 
     
-  //}
   myservo.attach(6);
   hit();
   stsw=millis();
@@ -276,9 +270,12 @@ int directionInt = 0;
 long lastmeas = 0;
 int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
+int w_count = 0;
+int col_loc[] = {0, 6, 1, 4, 5, 0, 2};
+
 
 void follow() {
-if(millis() - lastmeas > 30) {
+  if(millis() - lastmeas > 20) {
     lastmeas = millis();
     pos = qtr.readLineBlack(readl);
 
@@ -302,24 +299,24 @@ if(millis() - lastmeas > 30) {
 
 
     if(direction > 2700) {
-      speed(6);
-      Serial.println("rot_left");
+      speed(4);
+      // Serial.println("rot_left");
       pivotLeft();
     } else if (direction > 800)  {
-      speed(8);
-      Serial.println("turn left");
+      speed(6);
+      // Serial.println("turn left");
       turnLeft();
     } else if (direction < -2700) {
-      speed(6);
-      Serial.println("rot_right");
+      speed(4);
+      // Serial.println("rot_right");
       pivotRight();
     } else if (direction < -800) {
-      speed(8);
-      Serial.println("turn right");
+      speed(6);
+      // Serial.println("turn right");
       turnRight();
     } else {
-      speed(10);
-      Serial.println("straight");
+      speed(8);
+      // Serial.println("straight");
       forward();
     }
   }
@@ -463,25 +460,57 @@ void loop() {
     
     
   }
-  // else if(state==2){
-  //   // if(millis()-stsw > 1000){
-  //   digitalWrite(anim[3], HIGH);
-  //   speed(2);
-  //   count=0;
-  //   target = 100 ; // -100 for braking time
-  //   move = true;
-  //   //pivotRight();
-    
-  //   // delay(700);
-  //   // brake();
-  //   // delay(500);
-  //   // }
-    
-  //   state=3;
-    
-  // }
+  else if (state == 2) {
+    speed(6);
+    cmPR(15.5);
+    delay(600);
+    cmForward(8);
+    delay(500);
+    w_count = d_count;
+    stsw = millis();
+    while(d_count - w_count < 50*tpc && millis() - stsw < 1900) {
+      follow();
+    };
+    coast();
+    delay(200);
+    state = 3;
+    // Serial.println("ready for color");
+  } else if (state == 3) {
+    int color = color_loop();
+    cmReverse(51);
+    delay(1800);
+    to_color(color);
+    cmForward(8);
+    delay(550);
+    w_count = d_count;
+    stsw = millis();
+    while(d_count - w_count < 50*tpc && millis() - stsw < 1900) {
+      follow();
+    }
+    coast();
+    cmReverse(1.5);
+    delay(500);
+    hit();
+    delay(1000);
+  }
 }
 
+int prev_loc = 0;
+void to_color(int color) {
+  color = col_loc[color];
+  for(int i = 0; i<8; i++){ digitalWrite(anim[i], LOW); }
+  digitalWrite(anim[color], HIGH);
+  //while(buttonp == button) {}; // wait for press
+  //buttonp = button;
+  int diff = prev_loc - color;
+  if(diff < 0)
+    cmPL(4.9*abs(diff));
+  else
+    cmPR(4.9*abs(diff));
+  
+  delay(1600);
+  prev_loc = color;
+}
 
 
 void forward() {

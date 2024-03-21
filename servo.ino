@@ -12,8 +12,10 @@ void servo_setup() {
 }
 void hit() {
   myservo.write(0);
-  delay(1000); //todo should probably be non-blocking
+  delay(1000); 
   myservo.write(80);
+  delay(500);
+  myservo.write(0);
 }
 
 
