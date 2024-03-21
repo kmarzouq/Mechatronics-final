@@ -45,8 +45,8 @@ void distance_setup() {
 
 void hit() {
   myservo.write(0);
-  delay(800);
-  myservo.write(100);
+  delay(1000);
+  myservo.write(120);
   delay(500);
   myservo.write(0);
 }
@@ -273,7 +273,7 @@ int directions[] = {0, 0, 0, 0, 0};
 int directionsi = 0;
 int w_count = 0;
 int col_loc[] = {0, 6, 1, 4, 5, 0, 2};
-int etime = 0;
+long etime = 0;
 
 
 void follow() {
@@ -371,15 +371,15 @@ int state=0;
 
 void coin(int last_mov){
   cmPR(15+last_mov);
-      delay(1000);
-      cmReverse(12);
-      delay(1000);
-      brake();
-      delay(500);
-      cmForward(12);
-      delay(1000);
-      cmPL(15);
-      delay(1000);
+  delay(1000);
+  cmReverse(12);
+  delay(1000);
+  brake();
+  delay(500);
+  cmForward(12);
+  delay(1000);
+  cmPL(15);
+  delay(1000);
 }
 
 void loop() {
@@ -408,7 +408,8 @@ void loop() {
         follow();
         delay(50);
         
-      coin(0);
+        
+      coin(last_mov);
       follow();
       delay(50);
       brake();
@@ -427,11 +428,11 @@ void loop() {
       // coin(0);
       //cmForward(10);
       delay(1000);
-      cmReverse(10);
+      cmReverse(10.5);
       delay(1000);
-      cmPR(15);
+      cmPR(14.5);
       delay(1000);
-      cmForward(20);
+      cmForward(22);
       delay(700);
       stsw = millis();
     }
@@ -439,13 +440,13 @@ void loop() {
   } else if(state == 1){
     follow();
     
-    if(millis()-stsw > 3300){
+    if(millis()-stsw > 3500){
       state = 2;
       digitalWrite(anim[2], HIGH);
       brake();
-      cmPR(0.4);
-      delay(700);
-      etime = millis();
+      cmPL(1.5);
+      delay(500);
+      // etime = millis();
       
       d_count=0;
       while(d_count < 4200) {
@@ -458,26 +459,33 @@ void loop() {
   
   else if (state == 2) { // initial color check
     speed(6);
-    cmPR(15.5);
+    cmPR(16);
     delay(600);
     cmForward(13);
     delay(500);
     w_count = d_count;
     stsw = millis();
-    while(d_count - w_count < 43*tpc && millis() - stsw < 2000) {
+    while(d_count - w_count < 44*tpc && millis() - stsw < 2000) {
       follow();
     };
     coast();
     delay(500);
-    brake();
+    cmPR(1.3);
+    delay(500);
     state = 3;
     // Serial.println("ready for color");
   } else if (state == 3) {
     int color = color_loop();
-    cmReverse(51);
+    // int colc = color_loc[color];
+    // if (colc == prev_loc) {
+    //   hit();
+    //   delay(500);
+    //   color = color_loop();
+    // }
+    cmReverse(48);
     delay(1800);
     to_color(color);
-    cmForward(9);
+    cmForward(10);
     delay(550);
     w_count = d_count;
     stsw = millis();
@@ -487,12 +495,11 @@ void loop() {
     coast();
     cmReverse(1.5);
     delay(400);
-    cmPR(1.5);
-    delay(500);
     hit();
-    delay(1000);
-    if (etime - millis() > 2000)
-      state = 4;
+    cmPR(1.8);
+    delay(700);
+    // if (etime - millis() > 60000*2)
+    //   state = 4;
   }
 }
 
@@ -507,10 +514,10 @@ void to_color(int color) {
   // if (abs(diff) > 2) diff *= 1.16;
   // diff *= 1 + diff / 30;
   if(diff < 0) {
-    cmPL(5.0*abs(diff));
+    cmPL(4.6*abs(diff));
   } else {
     diff *= 1.1;
-    cmPR(5.0*abs(diff));
+    cmPR(4.9*abs(diff));
   }
 
   delay(300*abs(diff));
