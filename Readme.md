@@ -1,5 +1,7 @@
 For Mechatronics Final Project
 
+Working robot demo:https://drive.google.com/file/d/1NXlo8U5bDGwiBfpIhV9NuJ7j030Msf7s/view?usp=sharing
+
 ## Todo
 - [x] Motors / H-bridge
 - [x] Line follower
@@ -7,13 +9,13 @@ For Mechatronics Final Project
 - [x] Third Wheel
 - [x] Top Part
 - [x] Batteries
-- [ ] distance sensor (need to account for light changes)
+- [X] distance sensor (need to account for light changes)
 - [x] color sensor
 - [x] Hall effect sensor
-- [ ] Coins
-- [ ] Mole whacker
-- [ ] Organize code into stages
-- [ ] Light array as output
+- [X] Coins
+- [X] Mole whacker
+- [X] Organize code into stages
+- [X] Light array as output
 
 ## Angle Changes
 
